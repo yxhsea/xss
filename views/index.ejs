@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="/javascripts/encode.js" type="text/javascript"></script>
+    <script src="/javascripts/domParse.js" type="text/javascript"></script>
+ 	<script type="text/javascript">
+ 		var parse = function(str){
+ 			var results = '';
+ 			try{
+                HTMLParser(he.unescape(str,{strict:true}),{
+                    start:function(tag,attrs,unary){
+                        if(tag=='script'||tag=='style'||tag=='link'||tag=='iframe'||tag=='frame')return;
+                        results += '<'+tag;
+                        for(var i=0,len=attrs.length;i<len;i++){
+                            results += " "+attrs[i].name+'="'+attrs[i].escaped+'"';
+                        }
+                        results += (unary?"/":"")+">";
+                    },
+                    end:function(tag){
+                        results += "</"+tag+">";
+                    },
+                    chars:function(text){
+                        results += text;
+                    },
+                    comment:function(text){
+                        results +="<!--"+text+"-->";
+                    }
+                });
+                return results;
+ 			}catch(e){
+                console.log(e);
+ 			}finally{
+ 				
+ 			}
+ 		}
+ 	</script>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    
+    <textarea name="name" rows="8" cols="80" id="text">
+    	<p>sks<img src="null" alt="" onerror="alert(1)"></p>
+    </textarea>
+
+    <button type="button" name="button" id="btn">评论</button>
+    <button type="button" name="button" id="get">获取评论</button>
+  
+    <script type="text/javascript">
+    	//获取元素
+    	var btn = document.getElementById('btn');
+    	var get = document.getElementById('get');
+    	var txt = document.getElementById('text');
+
+    	//监听评论按钮事件
+    	btn.addEventListener('click',function(){
+    		var xhr = new XMLHttpRequest();
+    		var url = '/comment?comment='+ txt.value;
+    		xhr.open('GET',url,true);
+    		xhr.onreadystatechange=function(){
+    			if(xhr.readyState == 4){
+    				if(xhr.status == 200){
+    					console.log(xhr);
+    				}else{
+    					console.log('error');
+    				}
+    			}
+    		}
+    		xhr.send();
+    	});
+
+    	//监听获取评论按钮事件
+    	get.addEventListener('click',function(){
+            console.log('2');
+    		var xhr = new XMLHttpRequest();
+    		var url = '/getComment';
+    		xhr.open('GET',url,true);
+    		xhr.onreadystatechange=function(){
+    			if(xhr.readyState == 4){
+    				if(xhr.status == 200){
+    					var com = parse(JSON.parse(xhr.response).comment);
+                        var txt = document.createElement('span');
+                        txt.innerHTML = com;
+                        document.body.appendChild(txt);
+    				}else{
+    					console.log('error');
+    				}
+    			}
+    		}
+    		xhr.send();
+    	});
+    </script>
+  </body>
+</html>
